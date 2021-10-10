@@ -23,7 +23,7 @@ void PageTable::init_paging(ContFramePool * _kernel_mem_pool,
 // sets up global param, that is kernel memory pool and process memory pool on paging initailization
   PageTable::shared_size = _shared_size;
   PageTable::kernel_mem_pool = _kernel_mem_pool;
-  PageTable::process_mem_pool = _process_mem_pool
+  PageTable::process_mem_pool = _process_mem_pool;
 
    Console::puts("Initialized Paging System\n");
 }

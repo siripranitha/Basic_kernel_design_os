@@ -68,7 +68,7 @@ void PageTable::load()
 void PageTable::enable_paging()
 {
   // this function basically enables paging . that is it sets the value of paging_enabled variable to 1
-  PageTable::paging_enabled=1
+  PageTable::paging_enabled=1;
   write_cr0(read_cr0() | 0x80000000); // set the paging bit in CR0 to 1
   
   Console::puts("Enabled paging\n");
@@ -111,7 +111,7 @@ void PageTable::handle_fault(REGS * _r)
 
       new_page = PageTable::process_mem_pool->get_frames(1)*PAGE_SIZE;
       new_page = new_page | WRITE_BIT | PRESENT_BIT;
-      page_table[fault_addr_page_table_entry&0x3FF] = new_page;
+      page_table_containing_the_page[fault_addr_page_table_entry&0x3FF] = new_page;
 
     }
 

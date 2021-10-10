@@ -12,7 +12,7 @@ unsigned long PageTable::shared_size = 0;
 
 #define PRESENT_BIT  1  // bit 0 should be set to 1
 #define WRITE_BIT    2  // bit 1 ,the r/w bit to be set to 1
-
+#define USER_LEVEL_BIT  4
 // referenced http://www.osdever.net/tutorials/view/implementing-basic-paging
 
 
@@ -76,7 +76,48 @@ void PageTable::enable_paging()
 
 void PageTable::handle_fault(REGS * _r)
 {
-  assert(false);
+  unsigned long error_code = _r->err_code;
+  unsigned long page_fault_address = read_cr2();
+  unsigned long *page_directory_current = (unsigned long *)read_cr3();
+
+  unsigned long fault_addr_page_dir_entry = page_fault_address>>22;
+  unsigned long fault_addr_page_table_entry = page_fault_address>>12;
+  unsigned long *new_page=NULL;
+  unsigned long *page_table_containing_the_page = NULL;
+  
+
+
+
+  if (error_code & PRESENT_BIT == 0){
+    // that means the page is not presennt. now to check whether the problem lies at page table level or page dir level
+    // first check is to see whether the page directory entry corresponding to page address is valid.
+    if (page_directory_current[fault_addr_page_dir_entry]&PRESENT_BIT==1){
+      // page directory entry is present, that is page table is initialised, but page table entry is missing.
+      
+      new_page = PageTable::process_mem_pool->get_frames(1)*PAGE_SIZE;
+      new_page = new_page | WRITE_BIT | PRESENT_BIT;
+
+      page_table_containing_the_page = (unsigned long *)(page_directory_current[fault_addr_page_dir_entry] & 0xFFFFF000);
+      page_table_containing_the_page[page_table_containing_the_page[fault_addr_page_table_entry] & 0x3FF] = new_page;
+    } else{
+      // we have to create a page dir entry and corresponding page table entry for the faulty address
+        page_directory_current[fault_addr_page_dir_entry] = (PageTable::kernel_mem_pool->get_frames(1)*PAGE_SIZE)| WRITE_BIT | PRESENT_BIT;
+        page_table_containing_the_page = (unsigned long *)(page_directory_current[fault_addr_page_dir_entry] & 0xFFFFF000);
+        
+        for(int i=0; i<1024; i++){
+            page_table_containing_the_page[i] =  USER_LEVEL_BIT ; 
+              // attribute set to: user level
+              };
+
+      new_page = PageTable::process_mem_pool->get_frames(1)*PAGE_SIZE;
+      new_page = new_page | WRITE_BIT | PRESENT_BIT;
+      page_table[fault_addr_page_table_entry&0x3FF] = new_page;
+
+    }
+
+  }
+
+
   Console::puts("handled page fault\n");
 }
 

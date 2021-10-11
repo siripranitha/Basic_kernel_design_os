@@ -33,7 +33,7 @@ PageTable::PageTable()
   unsigned long address=0; 
   unsigned int i;
   
-  unsigned long *page_directory = ( unsigned long*)(kernel_mem_pool->get_frames(1)*PAGE_SIZE);
+  page_directory = ( unsigned long*)(kernel_mem_pool->get_frames(1)*PAGE_SIZE);
   unsigned long *page_table = ( unsigned long*)(kernel_mem_pool->get_frames(1)*PAGE_SIZE);
    
     

@@ -98,7 +98,7 @@ void PageTable::handle_fault(REGS * _r)
 
       page_table_containing_the_page = (unsigned long *)(page_directory_current[fault_addr_page_dir_entry] & 0xFFFFF000);
       page_table_containing_the_page[page_table_containing_the_page[fault_addr_page_table_entry] & 0x3FF] = (PageTable::process_mem_pool->get_frames(1)*PAGE_SIZE)| WRITE_BIT | PRESENT_BIT;
-    } else{
+    } }else{
       // we have to create a page dir entry and corresponding page table entry for the faulty address
         page_directory_current[fault_addr_page_dir_entry] = (unsigned long)(kernel_mem_pool->get_frames(1)*PAGE_SIZE)| WRITE_BIT | PRESENT_BIT;
         page_table_containing_the_page = (unsigned long *)(page_directory_current[fault_addr_page_dir_entry] & 0xFFFFF000);
@@ -112,7 +112,7 @@ void PageTable::handle_fault(REGS * _r)
 
     }
 
-  }
+  
 
 
   Console::puts("handled page fault\n");

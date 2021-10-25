@@ -23,7 +23,7 @@ void PageTable::init_paging(ContFramePool * _kernel_mem_pool,
 // sets up global param, that is kernel memory pool and process memory pool on paging initailization
   PageTable::shared_size = _shared_size;
   PageTable::kernel_mem_pool = _kernel_mem_pool;
-  PageTable::process_mem_pool = _process_mem_pool
+  PageTable::process_mem_pool = _process_mem_pool;
 
    Console::puts("Initialized Paging System\n");
 }
@@ -33,7 +33,7 @@ PageTable::PageTable()
   unsigned long address=0; 
   unsigned int i;
   
-  unsigned long *page_directory = ( unsigned long*)(kernel_mem_pool->get_frames(1)*PAGE_SIZE);
+  page_directory = ( unsigned long*)(kernel_mem_pool->get_frames(1)*PAGE_SIZE);
   unsigned long *page_table = ( unsigned long*)(kernel_mem_pool->get_frames(1)*PAGE_SIZE);
    
     
@@ -43,7 +43,7 @@ PageTable::PageTable()
     address = address + 4096; // 4096 = 4kb
   };
 
-  page_directory[0] = page_table; 
+  page_directory[0] = (unsigned long) page_table; 
   // entry of page directory set to page table
   //attribute set to: supervisor level, read/write, present(011 in binary)
   page_directory[0] = page_directory[0] | WRITE_BIT | PRESENT_BIT;
@@ -61,14 +61,14 @@ void PageTable::load()
 {
 
   PageTable::current_page_table = this;
-  write_cr3(page_directory); 
+  write_cr3((unsigned long)page_directory); 
   Console::puts("Loaded page table\n");
 }
 
 void PageTable::enable_paging()
 {
   // this function basically enables paging . that is it sets the value of paging_enabled variable to 1
-  PageTable::paging_enabled=1
+  PageTable::paging_enabled=1;
   write_cr0(read_cr0() | 0x80000000); // set the paging bit in CR0 to 1
   
   Console::puts("Enabled paging\n");
@@ -94,14 +94,13 @@ void PageTable::handle_fault(REGS * _r)
     if (page_directory_current[fault_addr_page_dir_entry]&PRESENT_BIT==1){
       // page directory entry is present, that is page table is initialised, but page table entry is missing.
       
-      new_page = PageTable::process_mem_pool->get_frames(1)*PAGE_SIZE;
-      new_page = new_page | WRITE_BIT | PRESENT_BIT;
+      
 
       page_table_containing_the_page = (unsigned long *)(page_directory_current[fault_addr_page_dir_entry] & 0xFFFFF000);
-      page_table_containing_the_page[page_table_containing_the_page[fault_addr_page_table_entry] & 0x3FF] = new_page;
+      page_table_containing_the_page[page_table_containing_the_page[fault_addr_page_table_entry] & 0x3FF] = (PageTable::process_mem_pool->get_frames(1)*PAGE_SIZE)| WRITE_BIT | PRESENT_BIT;
     } else{
       // we have to create a page dir entry and corresponding page table entry for the faulty address
-        page_directory_current[fault_addr_page_dir_entry] = (PageTable::kernel_mem_pool->get_frames(1)*PAGE_SIZE)| WRITE_BIT | PRESENT_BIT;
+        page_directory_current[fault_addr_page_dir_entry] = (unsigned long)(kernel_mem_pool->get_frames(1)*PAGE_SIZE)| WRITE_BIT | PRESENT_BIT;
         page_table_containing_the_page = (unsigned long *)(page_directory_current[fault_addr_page_dir_entry] & 0xFFFFF000);
         
         for(int i=0; i<1024; i++){
@@ -109,9 +108,7 @@ void PageTable::handle_fault(REGS * _r)
               // attribute set to: user level
               };
 
-      new_page = PageTable::process_mem_pool->get_frames(1)*PAGE_SIZE;
-      new_page = new_page | WRITE_BIT | PRESENT_BIT;
-      page_table[fault_addr_page_table_entry&0x3FF] = new_page;
+      page_table_containing_the_page[fault_addr_page_table_entry&0x3FF] = (PageTable::process_mem_pool->get_frames(1)*PAGE_SIZE)| WRITE_BIT | PRESENT_BIT;
 
     }
 

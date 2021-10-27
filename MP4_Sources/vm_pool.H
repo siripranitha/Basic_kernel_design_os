@@ -41,8 +41,25 @@ class PageTable;
 /* V M  P o o l  */
 /*--------------------------------------------------------------------------*/
 
+struct allocated_region_
+{
+  unsigned long start_address_region;
+  unsigned long size_of_region;
+};
+
 class VMPool { /* Virtual Memory Pool */
 private:
+  
+  unsigned long base_address;
+  unsigned long size;
+  ContFramePool *frame_pool;
+  PageTable *page_table;
+
+  unsigned int region_iterator;
+
+  struct allocated_region_* allocated_region; 
+
+  
    /* -- DEFINE YOUR VIRTUAL MEMORY POOL DATA STRUCTURE(s) HERE. */
 
 public:
@@ -72,6 +89,7 @@ public:
    bool is_legitimate(unsigned long _address);
    /* Returns false if the address is not valid. An address is not valid
     * if it is not part of a region that is currently allocated. */
+   if _address>= base_address
 
  };
 

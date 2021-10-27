@@ -55,6 +55,9 @@ private:
     
     /* DATA FOR CURRENT PAGE TABLE */
     unsigned long        * page_directory;     /* where is page directory located? */
+    static VMPool* vmpool_list[10];
+    static unsigned int vmpool_count;
+
     
 public:
     static const unsigned int PAGE_SIZE        = Machine::PAGE_SIZE;
@@ -91,7 +94,10 @@ public:
     /* The page fault handler. */
     
     // -- NEW IN MP4
-    
+    static unsigned long* PageTable::PDE_address(unsigned long addr);
+    static unsigned long* PageTable::PTE_address(unsigned long addr);
+
+
     void register_pool(VMPool * _vm_pool);
     /* Register a virtual memory pool with the page table. */
     

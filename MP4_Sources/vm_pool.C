@@ -44,8 +44,8 @@
 /* METHODS FOR CLASS   V M P o o l */
 /*--------------------------------------------------------------------------*/
 
-#define MAX_COUNT = 200 //PRONE TO CHANGE, MAY BE DERIVE FROM PAGE SIZE ITSELF
-#define PAGE_SIZE = Machine::PAGE_SIZE;
+#define MAX_COUNT  200 //PRONE TO CHANGE, MAY BE DERIVE FROM PAGE SIZE ITSELF
+#define PAGE_SIZE  Machine::PAGE_SIZE
 
 
 
@@ -105,16 +105,16 @@ void VMPool::release(unsigned long _start_address) {
 
   unsigned int page_count = allocated_region[index].size_of_region/PAGE_SIZE;
   unsigned long addr ;
-    for (int i = 0;i<page_count){
-      addr = allocated_region[index]+i*PAGE_SIZE;
-      page_table.free_page(addr);
+    for (int i = 0;i<page_count;i++){
+      addr = allocated_region[index].start_address_region+i*PAGE_SIZE;
+      page_table->free_page(addr);
     }
 
   for (int i =index;i<region_iterator-1;i++){
     allocated_region[i] = allocated_region[i+1];
   }
   region_iterator = region_iterator -1;
-  page_table.load();
+  page_table->load();
 
     Console::puts("Released region of memory.\n");
 }

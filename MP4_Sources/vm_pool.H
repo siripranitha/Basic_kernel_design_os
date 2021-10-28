@@ -89,7 +89,7 @@ public:
    bool is_legitimate(unsigned long _address);
    /* Returns false if the address is not valid. An address is not valid
     * if it is not part of a region that is currently allocated. */
-   if _address>= base_address
+
 
  };
 

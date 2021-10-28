@@ -93,8 +93,8 @@ void PageTable::handle_fault(REGS * _r)
   unsigned long *page_directory_current = PageTable::PDE_address(page_fault_address);
   unsigned long *page_table_containing_the_page = PageTable::PTE_address(page_fault_address);
 
-  unsigned long page_table_entry_number = (_page_no>>12)& 0x000003FF;
-  unsigned long page_directory_entry_number = (_page_no>>22)& 0x000003FF;
+  unsigned long page_table_entry_number = (page_fault_address>>12)& 0x000003FF;
+  unsigned long page_directory_entry_number = (page_fault_address>>22)& 0x000003FF;
 
     
 // is the address registered in vmpools? check..
@@ -146,14 +146,19 @@ void PageTable::register_pool(VMPool * _vm_pool)
 
 unsigned long* PageTable::PDE_address(unsigned long addr)
 {
-    unsigned long pde_entry = addr>>22;
-    return 0xFFFFF000 |(pde_entry);
+    //unsigned long pde_entry = addr>>22;
+    //	return 0xFFFFF000 |(pde_entry);
+    assert(false);
+    return 0;
 }
 
 unsigned long* PageTable::PTE_address(unsigned long addr)
 {
     unsigned long pte_entry = addr>>12;
-    return 0x03FF0000|pte_entry;
+    pte_entry = 0x03FF0000|pte_entry;
+    
+    unsigned long* pte_ptr = (unsigned long*) pte_entry;
+    return pte_ptr;
     
 }
 
@@ -161,7 +166,7 @@ void PageTable::free_page(unsigned long _page_no) {
     unsigned long * pte = PageTable::PTE_address(_page_no);
     unsigned long page_table_entry_number = (_page_no>>12)& 0x000003FF;
     // page table entry = page table number, left shift by 12 bits and make & operator with 0x000003FF;
-    pte[page_table_entry_number] = 0|WRITE_BIT|USER_LEVEL_BIT //110(user level,can write, not present)
+    pte[page_table_entry_number] = 0|WRITE_BIT|USER_LEVEL_BIT ;//110(user level,can write, not present)
     // release frames in frame pool?
 
     //PageTable::load();

@@ -25,8 +25,7 @@ void PageTable::init_paging(ContFramePool * _kernel_mem_pool,
   PageTable::shared_size = _shared_size;
   PageTable::kernel_mem_pool = _kernel_mem_pool;
   PageTable::process_mem_pool = _process_mem_pool;
-  vmpool_count = 0;
-
+  
    Console::puts("Initialized Paging System\n");
 
 }
@@ -36,17 +35,17 @@ PageTable::PageTable()
   unsigned long address=0; 
   unsigned int i;
   
-  page_directory = ( unsigned long*)(process_mem_pool->get_frames(1)*PAGE_SIZE);
+  page_directory = ( unsigned long*)(kernel_mem_pool->get_frames(1)*PAGE_SIZE);
   unsigned long *page_table = ( unsigned long*)(process_mem_pool->get_frames(1)*PAGE_SIZE);
    
     
   for(i=0; i<1024; i++){
-    page_table[i] = address | WRITE_BIT | PRESENT_BIT | USER_LEVEL_BIT; 
+    page_table[i] = address | WRITE_BIT | PRESENT_BIT ; 
     // attribute set to: supervisor level, read/write, present(011 in binary)
     address = address + 4096; // 4096 = 4kb
   };
-  page_table[1023] = (unsigned long) page_table;
-  page_table[1023] = page_table[1023] | PRESENT_BIT;
+  //page_table[1023] = (unsigned long) page_table;
+  //page_table[1023] = page_table[1023] | PRESENT_BIT;
   // attribute should be supervisor level , read only , present - 001
 
   page_directory[0] = (unsigned long) page_table; 
@@ -56,12 +55,16 @@ PageTable::PageTable()
 
 
   for(i=1; i<1024; i++){
-  page_directory[i] = 0 | WRITE_BIT |USER_LEVEL_BIT; 
+  page_directory[i] = 0 | WRITE_BIT ; 
   // attribute set to: supervisor level, read/write, not present(010 in binary)
   };
 
   page_directory[1023] = (unsigned long)page_directory;
-  page_directory[1023] = page_directory[1023] | PRESENT_BIT;
+  page_directory[1023] = page_directory[1023] | 0x3; //????
+  vmpool_current = NULL;
+  vmpool_count = 0;
+
+
 
   // writing it for recursive loop  
     Console::puts("Constructed Page Table object\n");
@@ -87,53 +90,43 @@ void PageTable::enable_paging()
 
 void PageTable::handle_fault(REGS * _r)
 {
-  unsigned long error_code = _r->err_code;
-  unsigned long page_fault_address = read_cr2();
-  
-  unsigned long *page_directory_current = PageTable::PDE_address(page_fault_address);
-  unsigned long *page_table_containing_the_page = PageTable::PTE_address(page_fault_address);
-
-  unsigned long page_table_entry_number = (page_fault_address>>12)& 0x000003FF;
-  unsigned long page_directory_entry_number = (page_fault_address>>22)& 0x000003FF;
-
-    
-// is the address registered in vmpools? check..
-  for (int i=0;i<=vmpool_count;i++){
-    assert(vmpool_list[i]->is_legitimate(page_fault_address));
-  }
-
-  if (error_code & PRESENT_BIT == 0){
-    // that means the page is not presennt. now to check whether the problem lies at page table level or page dir level
-    // first check is to see whether the page directory entry corresponding to page address is valid.
-    if (page_directory_current[page_directory_entry_number]&PRESENT_BIT==1){
-      // page directory entry is present, that is page table is initialised, but page table entry is missing.
-      page_table_containing_the_page[page_table_entry_number] = (PageTable::process_mem_pool->get_frames(1)*PAGE_SIZE)| WRITE_BIT | PRESENT_BIT|USER_LEVEL_BIT;
-    } 
-    
-    }
-
-    else{
-      // we have to create a page dir entry and corresponding page table entry for the faulty address
-        page_directory_current[page_directory_entry_number] = (unsigned long)(process_mem_pool->get_frames(1)*PAGE_SIZE)| WRITE_BIT | PRESENT_BIT|USER_LEVEL_BIT;
-        //page_table_containing_the_page = (unsigned long *)(page_directory_current[fault_addr_page_dir_entry] & 0xFFFFF000);
-        //IS THIS REQUIRED ? I DONT THINK SO??
-
-        for(int i=0; i<1024; i++){
-            page_table_containing_the_page[i] =  USER_LEVEL_BIT ;  // write bit not used bcoz directory?
-              // attribute set to: user level
-              };
-        page_table_containing_the_page[1023] = (unsigned long) page_table_containing_the_page;
-        page_table_containing_the_page[1023] = page_table_containing_the_page[1023] | PRESENT_BIT; //put it to supervisor level?
-
-      page_table_containing_the_page[page_table_entry_number] = (PageTable::process_mem_pool->get_frames(1)*PAGE_SIZE)| WRITE_BIT | PRESENT_BIT;
-
-    }
-
+  unsigned long fault_addr = read_cr2();
+  if(_r->err_code&1==1){//if the last bit is set to zero that means it is protection fault do nothing
+    Console::puts("protection fault");
     return;
+  }else{
+  //get  the current page table directory
+  VMPool* pool=current_page_table->vm_pool;
+  bool flag=false;
+    if(pool!=NULL&& !(pool->is_legitimate(fault_addr))){
+    flag=true;}
+    if(flag){
+        Console::puts("Page Not legitimate");
+    }
 
+  unsigned long* cur_page_dir = current_page_table->page_directory;
+  unsigned long* page_table;
+  //get the entry in page directory where page fault has occurred
+  unsigned long page_dir_bits = fault_addr>>22;
 
+  page_table=(unsigned long*)(cur_page_dir[page_dir_bits]&0xFFFFF000);
+  //if the page fault is due to invalid page table then this segment will run
+  if((cur_page_dir[page_dir_bits]& 1) == 0){
+    //get a frame from kernel pool for page table
+    page_table=(unsigned long*)((kernel_mem_pool->get_frames(1)*PAGE_SIZE)|3);
+    cur_page_dir[page_dir_bits]=(unsigned long)page_table;
+    //set all the page table entries to zero with R/W bit set and valid bit not set in supervisor mode
+    for(int i =0;i<1024;i++){
+        page_table[i] = 0|2;
+    }
+  }
+  //the below code is executed every time if a page fault occurred
+  unsigned long page_table_bits = (fault_addr>>12)&0x3ff;//get the page table entry where fault occurs
+  page_table[page_table_bits]=(unsigned long)((process_mem_pool->get_frames(1) * PAGE_SIZE)|3);//set page table entry by getting frame from process pool
 
-    Console::puts("handled page fault\n");
+  }
+  Console::puts("handled page fault\n");
+
 }
 
 void PageTable::register_pool(VMPool * _vm_pool)
@@ -163,13 +156,15 @@ unsigned long* PageTable::PTE_address(unsigned long addr)
 }
 
 void PageTable::free_page(unsigned long _page_no) {
-    unsigned long * pte = PageTable::PTE_address(_page_no);
+    unsigned long pde_bits = _page_no>>22;
     unsigned long page_table_entry_number = (_page_no>>12)& 0x000003FF;
-    // page table entry = page table number, left shift by 12 bits and make & operator with 0x000003FF;
-    pte[page_table_entry_number] = 0|WRITE_BIT|USER_LEVEL_BIT ;//110(user level,can write, not present)
-    // release frames in frame pool?
+        //get the page no which is to be released using recursive page table lookup;
+    unsigned long* page_table = (unsigned long*)((page_dir_bits*PAGE_SIZE)|0xffc00000);
+    process_mem_pool->release_frames(page_table[page_table_entry_number]);
+    write_cr3(read_cr3());
 
-    //PageTable::load();
-    // flush tlb here or in vm pool?
+    // page table entry = page table number, left shift by 12 bits and make & operator with 0x000003FF;
+
+    Console::puts("freed page\n");
 
 }

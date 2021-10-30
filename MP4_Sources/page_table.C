@@ -63,6 +63,9 @@ PageTable::PageTable()
   page_directory[1023] = page_directory[1023] | 0x3; //????
   vmpool_current = NULL;
   vmpool_count = 0;
+  for (i = 0;i<10;i++){
+  vmpool_list[i]=NULL;
+  }
 
 
 
@@ -100,12 +103,19 @@ void PageTable::handle_fault(REGS * _r)
   unsigned int cnt;
   cnt = current_page_table->vmpool_count;
   for (int i=0;i<=cnt;i++){
-    flag = current_page_table->vmpool_list[i]->is_legitimate(fault_addr);
-    if(flag){
-        Console::puts("Page Not legitimate");
+  if (current_page_table->vmpool_list[i]!=NULL){
+   	 if  (current_page_table->vmpool_list[i]->is_legitimate(fault_addr)){
+   	 flag = true;
+   	 break;
+   	 }
     }
 
   }
+  
+  if(!flag){
+        Console::puts("Page Not legitimate");
+        assert(flag);
+    }
     
   unsigned long* cur_page_dir = current_page_table->page_directory;
   unsigned long* page_table;
@@ -134,9 +144,9 @@ void PageTable::handle_fault(REGS * _r)
 
 void PageTable::register_pool(VMPool * _vm_pool)
 {
-    vmpool_list[vmpool_count] = _vm_pool;
     vmpool_count = vmpool_count+1;
-
+    vmpool_list[vmpool_count] = _vm_pool;
+    
     Console::puts("registered VM pool\n");
 }
 

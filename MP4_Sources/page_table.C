@@ -96,14 +96,17 @@ void PageTable::handle_fault(REGS * _r)
     return;
   }else{
   //get  the current page table directory
-  VMPool* pool=current_page_table->vm_pool;
   bool flag=false;
-    if(pool!=NULL&& !(pool->is_legitimate(fault_addr))){
-    flag=true;}
+  unsigned int cnt;
+  cnt = current_page_table->vmpool_count;
+  for (int i=0;i<=cnt;i++){
+    flag = current_page_table->vmpool_list[i]->is_legitimate(fault_addr);
     if(flag){
         Console::puts("Page Not legitimate");
     }
 
+  }
+    
   unsigned long* cur_page_dir = current_page_table->page_directory;
   unsigned long* page_table;
   //get the entry in page directory where page fault has occurred
@@ -156,7 +159,7 @@ unsigned long* PageTable::PTE_address(unsigned long addr)
 }
 
 void PageTable::free_page(unsigned long _page_no) {
-    unsigned long pde_bits = _page_no>>22;
+    unsigned long page_dir_bits = _page_no>>22;
     unsigned long page_table_entry_number = (_page_no>>12)& 0x000003FF;
         //get the page no which is to be released using recursive page table lookup;
     unsigned long* page_table = (unsigned long*)((page_dir_bits*PAGE_SIZE)|0xffc00000);

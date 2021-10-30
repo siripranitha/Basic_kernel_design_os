@@ -59,7 +59,7 @@ VMPool::VMPool(unsigned long  _base_address,
     page_table = _page_table;
     page_table->register_pool(this);
 
-    allocated_region = struct allocated_region* (base_address); 
+    allocated_region = (struct allocated_region_*) (base_address); 
     // pointer starts from base addr, that means in first page i guess.
     region_iterator = 0;
 

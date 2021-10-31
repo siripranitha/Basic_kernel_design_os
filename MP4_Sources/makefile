@@ -7,8 +7,7 @@ GCC_OPTIONS = -m32 -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exce
 all: kernel.bin
 
 clean:
-	rm -f *.bin assert.o gdt.o interrupts.o kernel.o machine.o paging_low.o simple_timer.o utils.o console.o exceptions.o idt.o  irq.o machine_low.o page_table.o simple_keyboard.o start.o vm_pool.o
-
+	rm -f *.o *.bin
 
 start.o: start.asm gdt_low.asm idt_low.asm irq_low.asm
 	$(AS) -f elf -o start.o start.asm
@@ -64,8 +63,8 @@ paging_low.o: paging_low.asm paging_low.H
 page_table.o: page_table.C page_table.H paging_low.H vm_pool.H cont_frame_pool.H
 	$(GCC) $(GCC_OPTIONS) -c -o page_table.o page_table.C
 
-#cont_frame_pool.o: cont_frame_pool.C cont_frame_pool.H
-#	$(GCC) $(GCC_OPTIONS) -c -o cont_frame_pool.o cont_frame_pool.C
+cont_frame_pool.o: cont_frame_pool.C cont_frame_pool.H
+	#$(GCC) $(GCC_OPTIONS) -c -o cont_frame_pool.o cont_frame_pool.C
 
 vm_pool.o: vm_pool.C vm_pool.H page_table.H
 	$(GCC) $(GCC_OPTIONS) -c -o vm_pool.o vm_pool.C

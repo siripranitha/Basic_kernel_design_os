@@ -94,6 +94,7 @@ void PageTable::handle_fault(REGS * _r)
   unsigned long fault_addr = read_cr2();
   if(_r->err_code&1==1){
     Console::puts("protection fault");
+    assert(false);
     return;
   }
   else{
@@ -122,25 +123,30 @@ void PageTable::handle_fault(REGS * _r)
 
   
   
-  unsigned long* cur_page_dir = current_page_table->page_directory;
-  unsigned long* page_table;
+  unsigned long* cur_page_dir = PageTable::current_page_table->PDE_address(fault_addr);
+  unsigned long pde_index = (fault_addr & 0xFFC00000) >> 22;
+  unsigned long pte_index = (fault_addr & 0x003FF000) >> 12;
   
-  unsigned long page_dir_bits = fault_addr>>22;
-
-  page_table=(unsigned long*)(cur_page_dir[page_dir_bits]&0xFFFFF000);
+  bool frame_flag = false;
+  if((*cur_page_dir & 0x1) != 0x1)                                                                        //PDE is not valid
+	  {
+		*cur_page_dir = (process_mem_pool->get_frames(1) << 12);                      //Allocating frame for a new page table
+		*cur_page_dir = *cur_page_dir | 3;                                                                     // attribute set to: supervisor level, read/write, present(011 in binary) 
+		frame_flag = true;
+	  }
+	  
+	 unsigned long* page_table = (unsigned long *)(0xFFC00000 | (pde_index << 12));            //computing the logical address of page table; it is pte address multiple
   
-  if((cur_page_dir[page_dir_bits]& 1) == 0){
-  
-    page_table=(unsigned long*)((process_mem_pool->get_frames(1)*PAGE_SIZE)|3);
-    cur_page_dir[page_dir_bits]=(unsigned long)page_table;
-  
-    for(int i =0;i<1024;i++){
-        page_table[i] = 0|2;
-    }
-  }
-  
-  unsigned long page_table_bits = (fault_addr>>12)&0x3ff;
-  page_table[page_table_bits]=(unsigned long)((process_mem_pool->get_frames(1) * PAGE_SIZE)|3);
+  if(frame_flag)                                                                                               //If a new page table was created init the entries
+	  {
+		  for(unsigned int i=0; i<1024; i++)                                                             //Intialize every entry of page table
+		  {
+			*(page_table + i) = 0 | 2;                                                          // attribute set to: supervisor level, read/write, not present(010 in binary)
+		  } 
+	  }      
+	  unsigned long fr = (process_mem_pool->get_frames(1)) << 12;       
+	  *(page_table + pte_index) =  fr | 3;                                                     //Set the PTE entry to point to the actual physical frame
+	  
 
   
   
@@ -161,8 +167,8 @@ unsigned long* PageTable::PDE_address(unsigned long addr)
 {
     //unsigned long pde_entry = addr>>22;
     //	return 0xFFFFF000 |(pde_entry);
-    assert(false);
-    return 0;
+    unsigned long pde_index = (addr & 0xFFC00000) >> 22;
+    return (unsigned long *)(0xFFFFF000 + (pde_index << 2)); 
 }
 
 unsigned long* PageTable::PTE_address(unsigned long addr)

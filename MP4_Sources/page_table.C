@@ -115,7 +115,7 @@ void PageTable::handle_fault(REGS * _r)
   
   if(!flag){
         Console::puts("Page Not legitimate");
-        assert(flag);
+        assert(!flag);
     }
     
 

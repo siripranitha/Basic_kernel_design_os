@@ -42,7 +42,7 @@ PageTable::PageTable()
   for(i=0; i<1024; i++){
     page_table[i] = address | WRITE_BIT | PRESENT_BIT ; 
     // attribute set to: supervisor level, read/write, present(011 in binary)
-    address = address + 4096; // 4096 = 4kb
+    address = address + PAGE_SIZE; // 4096 = 4kb
   };
   
   page_directory[0] = (unsigned long) page_table; 
@@ -118,6 +118,9 @@ void PageTable::handle_fault(REGS * _r)
         assert(flag);
     }
     
+
+
+  
   
   unsigned long* cur_page_dir = current_page_table->page_directory;
   unsigned long* page_table;

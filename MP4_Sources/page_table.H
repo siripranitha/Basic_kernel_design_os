@@ -56,7 +56,7 @@ private:
     /* DATA FOR CURRENT PAGE TABLE */
     unsigned long        * page_directory;     /* where is page directory located? */
     VMPool* vmpool_list[10];
-    VMPool* vmpool_current;
+   
     unsigned int vmpool_count;
 
 

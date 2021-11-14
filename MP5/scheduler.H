@@ -57,13 +57,12 @@
 struct Threadnode {
    Thread *thr;
    struct Threadnode *next;
-   struct Threadnode *prev;
 };
 
 class Scheduler {
 private:
-  static struct Threadnode *current_thr_node;
-  static struct Threadnode *thr_queue_head;
+  static struct Threadnode *head;
+  static struct Threadnode *tail;
   static int count_of_threads;
 
   /* The scheduler may need private members... */

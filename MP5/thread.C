@@ -43,7 +43,7 @@
 /* EXTERNS */
 /*--------------------------------------------------------------------------*/
 
-Scheduler * S_SCHEDULER;
+extern Scheduler * SYSTEM_SCHEDULER;
 
 
 Thread * current_thread = 0;
@@ -78,8 +78,8 @@ static void thread_shutdown() {
        This is a bit complicated because the thread termination interacts with the scheduler.
      */
     
-    S_SCHEDULER->terminate(Thread::CurrentThread());
-    //delete current_thread;
+    SYSTEM_SCHEDULER->terminate(Thread::CurrentThread());
+    delete current_thread;
     //S_SCHEDULER->yield();
     /* Let's not worry about it for now. 
        This means that we should have non-terminating thread functions. 

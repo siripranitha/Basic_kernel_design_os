@@ -88,7 +88,6 @@ void Scheduler::yield() {
 }
 
 void Scheduler::resume(Thread * _thread) {
-  Console::puts("Resume function called. number of threads -is ");Console::puti(Scheduler::count_of_threads);
 
   Scheduler::add(_thread);
 }
@@ -119,7 +118,6 @@ void Scheduler::add(Thread * _thread) {
 }
 
 void Scheduler::terminate(Thread * _thread) {
-  Console::puts("	THREADS ARE GETTING TERMINATED YOOOO");
   
   
   if (Scheduler::head->thr->ThreadId()==_thread->ThreadId()){

@@ -79,12 +79,12 @@ void Scheduler::yield() {
 }
 
 void Scheduler::resume(Thread * _thread) {
-  assert(false);
+  Scheduler::add(_thread);
 }
 
 void Scheduler::add(Thread * _thread) {
 	// add a node just before the current thread pointer.
-	Threadnode* new_thread_node = (struct Threadnode *)malloc(sizeof(struct Threadnode));
+	Threadnode* new_thread_node = new Threadnode;
 	new_thread_node->thr = _thread;
 
 	if (Scheduler::current_thr_node == NULL){
@@ -143,6 +143,8 @@ void Scheduler::terminate(Thread * _thread) {
 
   term_prev->next = term_next;
   term_next->prev = term_prev;
+  
+  delete node_to_be_terminated;
 
   //thread_shutdown(_thread);
   // delete the  terminated node!! dont know how.

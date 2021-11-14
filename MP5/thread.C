@@ -87,6 +87,7 @@ static void thread_shutdown() {
 }
 
 static void thread_start() {
+	Machine::enable_interrupts();
      /* This function is used to release the thread for execution in the ready queue. */
     
      /* We need to add code, but it is probably nothing more than enabling interrupts. */
@@ -123,7 +124,7 @@ void Thread::setup_context(Thread_Function _tfunction){
      * thread starts.
      */
     /* ---- EFLAGS */
-    push(0);
+    push(1);
     /* Clear the IF bit to disable interrupts when thread starts. */
 
     /* ---- CS and EIP REGISTERS */

@@ -122,7 +122,7 @@ void Scheduler::terminate(Thread * _thread) {
   
   if (Scheduler::head->thr->ThreadId()==_thread->ThreadId()){
   	Scheduler::yield();
-  }else{
+  }
   Threadnode* new_thread_node= Scheduler::head;
   Threadnode* problem_node=NULL;
   
@@ -139,7 +139,7 @@ void Scheduler::terminate(Thread * _thread) {
   }
   
   
-  }
+  
 
  
 

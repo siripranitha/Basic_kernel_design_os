@@ -98,8 +98,8 @@ void Scheduler::add(Thread * _thread) {
 	Threadnode* new_thread_node = new Threadnode;
 	new_thread_node->thr = _thread;
 	new_thread_node->next = NULL;
-	Console::puts("interrupts???????????????????=================");Console::puti(Machine::interrupts_enabled());
-	Machine::disable_interrupts();
+	//Console::puts("interrupts???????????????????=================");Console::puti(Machine::interrupts_enabled());
+	//Machine::disable_interrupts();
 
 	if (Scheduler::head == NULL){
 		
@@ -113,7 +113,7 @@ void Scheduler::add(Thread * _thread) {
 	}
 
 	Scheduler::count_of_threads=Scheduler::count_of_threads+1;
-	Machine::enable_interrupts();
+	//Machine::enable_interrupts();
 
 	return;
 
@@ -127,7 +127,7 @@ void Scheduler::terminate(Thread * _thread) {
   }
   Threadnode* new_thread_node= Scheduler::head;
   Threadnode* problem_node=NULL;
-  Machine::disable_interrupts();
+  //Machine::disable_interrupts();
   while(new_thread_node->next!=NULL){
   
   Thread* next_thread = new_thread_node->next->thr;
@@ -137,7 +137,7 @@ void Scheduler::terminate(Thread * _thread) {
   delete problem_node;
   //break;
   }
-  Machine::enable_interrupts();
+  //Machine::enable_interrupts();
   
   }
   

@@ -25,7 +25,7 @@
 #include "scheduler.H"
 #include "thread.H"
 
-extern Scheduler* SYSTEM_SCHEDULER;
+extern Scheduler * SYSTEM_SCHEDULER;
 
 
 
@@ -46,6 +46,7 @@ BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size)
 
 void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
   // -- REPLACE THIS!!!
+  Console::puts("is this accessing? write ");
   SimpleDisk::read(_block_no, _buf);
 
 }
@@ -53,6 +54,7 @@ void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
 
 void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf) {
   // -- REPLACE THIS!!!
+  Console::puts("is this accessing? write");
   SimpleDisk::write(_block_no, _buf);
 }
 
@@ -83,14 +85,17 @@ void BlockingDisk::add_disk_thread(Thread* _thread){
 }
 
 void BlockingDisk::wait_until_ready() {
+	Console::puts("is this accessing? ");
     if (!BlockingDisk::is_ready()) {
+        
         Thread *current_thread = Thread::CurrentThread();
         
-        this->add_disk_thread(current_thread);
+        //this->add_disk_thread(current_thread);
         
         SYSTEM_SCHEDULER->yield();
     }
-
+	
+    return;
 }
 
 bool BlockingDisk::is_ready() {

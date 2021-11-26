@@ -41,7 +41,8 @@ private:
   struct Threadnode *diskqueue_tail;
   int disk_queue_size;
 protected:
-  void wait_until_ready;
+  void wait_until_ready();
+  bool is_ready();
 
 public:
    BlockingDisk(DISK_ID _disk_id, unsigned int _size); 
@@ -60,7 +61,7 @@ public:
    virtual void write(unsigned long _block_no, unsigned char * _buf);
    /* Writes 512 Bytes from the buffer to the given block on the disk. */
    void add_disk_thread(Thread* _thread);
-   bool is_ready();
+   
 };
 
 #endif

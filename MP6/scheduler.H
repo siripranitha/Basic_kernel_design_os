@@ -20,6 +20,8 @@
 /*--------------------------------------------------------------------------*/
 
 #include "thread.H"
+#include "blocking_disk.H"
+
 
 /*--------------------------------------------------------------------------*/
 /* !!! IMPLEMENTATION HINT !!! */
@@ -54,6 +56,8 @@
 /* SCHEDULER */
 /*--------------------------------------------------------------------------*/
 
+class BlockingDisk;
+
 struct Threadnode {
    Thread *thr;
    struct Threadnode *next;
@@ -61,10 +65,12 @@ struct Threadnode {
 
 class Scheduler {
 private:
+  BlockingDisk *disk;
+
   static struct Threadnode *head;
   static struct Threadnode *tail;
   static int count_of_threads;
-
+  
   /* The scheduler may need private members... */
   
 public:
@@ -76,7 +82,7 @@ public:
 
    /* NOTE: We are making all functions virtual. This may come in handy when
             you want to derive RRScheduler from this class. */
-  
+   void update_disk(BlockingDisk *_disk);
    virtual void yield();
    /* Called by the currently running thread in order to give up the CPU. 
       The scheduler selects the next thread from the ready queue to load onto 

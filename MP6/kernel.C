@@ -292,17 +292,19 @@ int main() {
     InterruptHandler::register_handler(0, &timer);
     /* The Timer is implemented as an interrupt handler. */
 
+
+    /* -- DISK DEVICE -- */
+
+    SYSTEM_DISK = new BlockingDisk(DISK_ID::MASTER, SYSTEM_DISK_SIZE);
+
 #ifdef _USES_SCHEDULER_
 
     /* -- SCHEDULER -- IF YOU HAVE ONE -- */
   
     SYSTEM_SCHEDULER = new Scheduler();
+    SYSTEM_SCHEDULER->update_disk(SYSTEM_DISK);
 
 #endif
-
-    /* -- DISK DEVICE -- */
-
-    SYSTEM_DISK = new BlockingDisk(DISK_ID::MASTER, SYSTEM_DISK_SIZE);
    
     /* NOTE: The timer chip starts periodically firing as 
              soon as we enable interrupts.

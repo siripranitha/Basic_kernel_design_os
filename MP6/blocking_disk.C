@@ -84,6 +84,26 @@ void BlockingDisk::add_disk_thread(Thread* _thread){
 
 }
 
+Thread* BlockingDisk::return_first_disk_thread(){
+
+
+  Threadnode* current_head = this->diskqueue_head;
+  Threadnode* next_thread_node=this->diskqueue_head->next;
+  Thread* next_thread = next_thread_node->thr;
+	
+  this->diskqueue_head = next_thread_node;
+  this->disk_queue_size-=1;
+  
+  
+	
+  
+  return current_head->thr;
+
+
+}
+
+
+
 void BlockingDisk::wait_until_ready() {
     
     if (!BlockingDisk::is_ready()) {
@@ -92,8 +112,8 @@ void BlockingDisk::wait_until_ready() {
         Console::puts("---------------------------------------------------------------");Console::puts("\n");        
         Console::puts("adding disk thread to end of ready queue and yielding the CPU.");Console::puts("\n");
         
-        SYSTEM_SCHEDULER->resume(current_thread);
-        //this->add_disk_thread(current_thread);
+        //SYSTEM_SCHEDULER->resume(current_thread);
+        this->add_disk_thread(current_thread);
         
         SYSTEM_SCHEDULER->yield();
     }

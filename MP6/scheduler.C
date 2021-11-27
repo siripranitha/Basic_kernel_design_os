@@ -22,6 +22,7 @@
 #include "utils.H"
 #include "assert.H"
 #include "simple_keyboard.H"
+//#include "blocking_disk.H"
 
 
 
@@ -57,9 +58,15 @@ Scheduler::Scheduler() {
 	// add an idle thread here.
 	Scheduler::head = NULL;
 	Scheduler::tail = NULL;
+	this->disk = NULL;
 	// USE MEMORY ALLOCATING FUNCTION TO ALLOCATE MEMORY HERE
 
   Console::puts("Constructed Scheduler.\n");
+}
+
+void Scheduler::update_disk(BlockingDisk * _disk){
+	this->disk = _disk;
+	return;
 }
 
 void Scheduler::yield() {
@@ -67,6 +74,21 @@ void Scheduler::yield() {
 		Console::puts("No threads in queue. error\n");
 		assert(false);		
 	}
+	
+	//Console::puts("is disk ready --");Console::puti(this->disk->is_ready());
+	
+	
+	
+	if ((this->disk->disk_queue_size>0)&&(this->disk->is_ready())){
+	   Console::puts("*********************************************************************************");
+	   Console::puts("checking if the disk is ready and dispatching next thread in disk queue ");Console::puts("\n");
+	   Thread::dispatch_to(this->disk->return_first_disk_thread());
+	   return;		
+	} else{
+	
+	
+	
+	
 	Thread* next_thread;
 	
 	if (Thread::CurrentThread()->ThreadId()== Scheduler::head->thr->ThreadId()){
@@ -94,6 +116,7 @@ void Scheduler::yield() {
 
 
 	Thread::dispatch_to(next_thread);
+	return;}
 	
 	
 	

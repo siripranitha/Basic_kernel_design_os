@@ -67,24 +67,36 @@ void Scheduler::yield() {
 		Console::puts("No threads in queue. error\n");
 		assert(false);		
 	}
+	Thread* next_thread;
+	
+	if (Thread::CurrentThread()->ThreadId()== Scheduler::head->thr->ThreadId()){
 
 	Threadnode* current_head = Scheduler::head;
 	Threadnode* next_thread_node=Scheduler::head->next;
-	Thread* next_thread = next_thread_node->thr;
+	next_thread = next_thread_node->thr;
 	
 	Scheduler::head = next_thread_node;
 	//delete current_head;
+	Scheduler::count_of_threads=Scheduler::count_of_threads-1;
+	}else{
+	next_thread=Scheduler::head->thr;
+	}
 	
 
 	//Thread* current_thread = Scheduler::current_thr_node->thr;
 	//Scheduler::current_thr_node = next_thread_node;
 	//Console::puts("removing the node previously running.");
 	//Scheduler::terminate(current_thread);
+	
+	
+	
+	Console::puts("scheduler yielding to thread id :");Console::puti(next_thread->ThreadId()+1); Console::puts("\n");
+
 
 	Thread::dispatch_to(next_thread);
-
-	Console::puts(" current thread yielded. cpu went to the next thread.\n");
-
+	
+	
+	
 }
 
 void Scheduler::resume(Thread * _thread) {
@@ -98,9 +110,7 @@ void Scheduler::add(Thread * _thread) {
 	Threadnode* new_thread_node = new Threadnode;
 	new_thread_node->thr = _thread;
 	new_thread_node->next = NULL;
-	//Console::puts("interrupts???????????????????=================");Console::puti(Machine::interrupts_enabled());
-	//Machine::disable_interrupts();
-
+	
 	if (Scheduler::head == NULL){
 		
 		Scheduler::head=new_thread_node;
@@ -113,8 +123,9 @@ void Scheduler::add(Thread * _thread) {
 	}
 
 	Scheduler::count_of_threads=Scheduler::count_of_threads+1;
-	//Machine::enable_interrupts();
+	Console::puts("added the thread back to ready queue :");Console::puti(_thread->ThreadId()+1); Console::puts("\n");
 
+	
 	return;
 
 }
@@ -127,7 +138,6 @@ void Scheduler::terminate(Thread * _thread) {
   }
   Threadnode* new_thread_node= Scheduler::head;
   Threadnode* problem_node=NULL;
-  //Machine::disable_interrupts();
   while(new_thread_node->next!=NULL){
   
   Thread* next_thread = new_thread_node->next->thr;
@@ -137,7 +147,6 @@ void Scheduler::terminate(Thread * _thread) {
   delete problem_node;
   //break;
   }
-  //Machine::enable_interrupts();
   
   }
   

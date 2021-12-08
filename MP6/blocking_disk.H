@@ -39,11 +39,14 @@ class BlockingDisk : public SimpleDisk {
 private:
   struct Threadnode *diskqueue_head;
   struct Threadnode *diskqueue_tail;
-  int disk_queue_size;
+  
 protected:
-  void wait_until_ready;
-
+  void wait_until_ready();
+  
 public:
+   int disk_queue_size;
+
+   bool is_ready();
    BlockingDisk(DISK_ID _disk_id, unsigned int _size); 
    /* Creates a BlockingDisk device with the given size connected to the 
       MASTER or SLAVE slot of the primary ATA controller.
@@ -60,7 +63,8 @@ public:
    virtual void write(unsigned long _block_no, unsigned char * _buf);
    /* Writes 512 Bytes from the buffer to the given block on the disk. */
    void add_disk_thread(Thread* _thread);
-   bool is_ready();
+   Thread* return_first_disk_thread();
+   
 };
 
 #endif

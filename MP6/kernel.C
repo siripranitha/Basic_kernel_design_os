@@ -19,7 +19,7 @@
 
 /* -- COMMENT/UNCOMMENT THE FOLLOWING LINE TO EXCLUDE/INCLUDE SCHEDULER CODE */
 
-//#define _USES_SCHEDULER_
+#define _USES_SCHEDULER_
 /* This macro is defined when we want to force the code below to use 
    a scheduler.
    Otherwise, no scheduler is used, and the threads pass control to each 
@@ -52,8 +52,11 @@
 #include "scheduler.H"      /* WE WILL NEED A SCHEDULER WITH BlockingDisk */
 #endif
 
+#include "blocking_disk.H"
 #include "simple_disk.H"    /* DISK DEVICE */
-                            /* YOU MAY NEED TO INCLUDE blocking_disk.H
+                            /* YOU MAY NEED TO INCLUDE blocking_disk.H*/
+                           
+                          
 /*--------------------------------------------------------------------------*/
 /* MEMORY MANAGEMENT */
 /*--------------------------------------------------------------------------*/
@@ -88,6 +91,11 @@ void operator delete[] (void * p) {
     MEMORY_POOL->release((unsigned long)p);
 }
 
+void operator delete(void* p, size_t) {
+    MEMORY_POOL->release((unsigned long)p);
+}
+
+
 /*--------------------------------------------------------------------------*/
 /* SCHEDULER */
 /*--------------------------------------------------------------------------*/
@@ -104,7 +112,7 @@ Scheduler * SYSTEM_SCHEDULER;
 /*--------------------------------------------------------------------------*/
 
 /* -- A POINTER TO THE SYSTEM DISK */
-SimpleDisk * SYSTEM_DISK;
+BlockingDisk * SYSTEM_DISK;
 
 #define SYSTEM_DISK_SIZE (10 MB)
 
@@ -154,6 +162,8 @@ void fun1() {
        for (int i = 0; i < 10; i++) {
            Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
        }
+       
+       
 
        pass_on_CPU(thread2);
     }
@@ -170,8 +180,9 @@ void fun2() {
     int  read_block  = 1;
     int  write_block = 0;
 
+    
     for(int j = 0;; j++) {
-
+    
        Console::puts("FUN 2 IN ITERATION["); Console::puti(j); Console::puts("]\n");
 
        /* -- Read */
@@ -191,7 +202,8 @@ void fun2() {
        read_block  = (read_block + 1) % 10;
 
        /* -- Give up the CPU */
-       pass_on_CPU(thread3);
+       
+       pass_on_CPU(thread1);
     }
 }
 
@@ -280,17 +292,19 @@ int main() {
     InterruptHandler::register_handler(0, &timer);
     /* The Timer is implemented as an interrupt handler. */
 
+
+    /* -- DISK DEVICE -- */
+
+    SYSTEM_DISK = new BlockingDisk(DISK_ID::MASTER, SYSTEM_DISK_SIZE);
+
 #ifdef _USES_SCHEDULER_
 
     /* -- SCHEDULER -- IF YOU HAVE ONE -- */
   
     SYSTEM_SCHEDULER = new Scheduler();
+    SYSTEM_SCHEDULER->update_disk(SYSTEM_DISK);
 
 #endif
-
-    /* -- DISK DEVICE -- */
-
-    SYSTEM_DISK = new SimpleDisk(DISK_ID::MASTER, SYSTEM_DISK_SIZE);
    
     /* NOTE: The timer chip starts periodically firing as 
              soon as we enable interrupts.

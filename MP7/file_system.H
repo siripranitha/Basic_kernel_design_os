@@ -44,6 +44,9 @@ class Inode
 
 private:
   long id; // File "name"
+  unsigned int block_no;
+  bool inode_free;
+  int file_size;
 
   /* You will need additional information in the inode, such as allocation 
      information. */
@@ -55,6 +58,10 @@ private:
 
   /* You may need a few additional functions to help read and store the 
      inodes from and to disk. */
+
+public:
+  Inode();
+  
 };
 
 /*--------------------------------------------------------------------------*/
@@ -79,12 +86,21 @@ private:
   unsigned int size;
 
   static constexpr unsigned int MAX_INODES = SimpleDisk::BLOCK_SIZE / sizeof(Inode);
+  ///static constexpr unsigned int MAX_FREE_BLOCKS = SimpleDisk::BLOCK_SIZE / sizeof(Inode);
   /* Just as an example, you can store MAX_INODES in a single INODES block */
 
-  Inode *inodes; // the inode list
+  
   /* The inode list */
 
+  unsigned int free_block_count;
+  unsigned int inode_counter;
   unsigned char *free_blocks;
+  Inode *inodes; // the inode list
+
+
+  //isize, fsize, nfree,nfree array, ninode, inode array, timestamp
+
+
   /* The free-block list. You may want to implement the "list" as a bitmap. 
      Feel free to use an unsigned char to represent whether a block is free or not; 
      no need to go to bits if you don't want to. 

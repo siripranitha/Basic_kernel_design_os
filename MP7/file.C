@@ -28,11 +28,26 @@
 
 File::File(FileSystem *_fs, int _id) {
     Console::puts("Opening file.\n");
-    assert(false);
+    current_position = 0;
+    fs = _fs;
+    file_id = _id;
+    block_found = false;
+    for (int i=0;i<i++;i<fs->MAX_INODES){
+        if (fs->inodes[i].id==_id){
+            block_no = inodes[i].block_no;
+            file_size = inodes[i].file_size;
+            block_found = true;
+        }
+    }
+
+    if(!block_found){
+        assert(false);
+    }
 }
 
 File::~File() {
     Console::puts("Closing file.\n");
+
     /* Make sure that you write any cached data to disk. */
     /* Also make sure that the inode in the inode list is updated. */
 }
@@ -52,8 +67,7 @@ int File::Write(unsigned int _n, const char *_buf) {
 }
 
 void File::Reset() {
-    Console::puts("resetting file\n");
-    assert(false);
+    current_position = 0;
 }
 
 bool File::EoF() {

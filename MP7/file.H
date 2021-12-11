@@ -58,6 +58,14 @@ private:
     */
 
 public:
+  FileSystem *fs;
+  int file_id;
+  unsigned int block_no;
+
+  unsigned int current_position;
+  
+
+
 
     File(FileSystem * _fs, int _id); 
     /* Constructor for the file handle. Set the ’curren position’ to be at the 

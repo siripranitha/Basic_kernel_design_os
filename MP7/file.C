@@ -31,12 +31,12 @@ File::File(FileSystem *_fs, int _id) {
     current_position = 0;
     fs = _fs;
     file_id = _id;
-    block_found = false;
+    bool block_found = false;
     for (int i=0;i<i++;i<fs->MAX_INODES){
         if (fs->inodes[i].id==_id){
             inode_index = i;
-            block_no = inodes[i].block_no;
-            file_size = inodes[i].file_size;
+            block_no = fs->inodes[i].block_no;
+            file_size = fs->inodes[i].file_size;
             block_found = true;
         }
     }
@@ -49,8 +49,12 @@ File::File(FileSystem *_fs, int _id) {
 File::~File() {
     Console::puts("Closing file.\n");
     fs->disk->write(block_no,block_cache);
-    fs->inodes[i].file_size = file_size;
-    Inode::CommitUpdatedInodes();
+    fs->inodes[inode_index].file_size = file_size;
+    
+    Inode * tmp_inodes = fs->inodes;
+    unsigned char * tmp = (unsigned char *)tmp_inodes;
+    fs->disk->write(1,tmp);  // CHANGE THIS
+    //Inode::CommitUpdatedInodes();
     /* Make sure that you write any cached data to disk. */
     /* Also make sure that the inode in the inode list is updated. */
 }
@@ -61,8 +65,8 @@ File::~File() {
 
 int File::Read(unsigned int _n, char *_buf) {
     Console::puts("reading from file\n");
-    int character_count = 0
-    for (i=current_position;i<file_size;i++){
+    int character_count = 0;
+    for (int i=current_position;i<file_size;i++){
         if (character_count==_n){
             break;
         }
@@ -77,7 +81,7 @@ int File::Write(unsigned int _n, const char *_buf) {
     Console::puts("writing to file\n");
     int character_count = 0;
     int st = current_position;
-    for (i=st;i<st+_n;i++){
+    for (int i=st;i<st+_n;i++){
         if (i==SimpleDisk::BLOCK_SIZE){
             break;
         }

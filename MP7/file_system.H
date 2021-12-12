@@ -61,8 +61,8 @@ private:
 
 public:
   Inode();
-  void InitialiseInode(long _file_id, unsigned int _file_block_no FileSystem * _fs );
-  static void CommitUpdatedInodes();
+  void InitialiseInode(long _file_id, unsigned int _file_block_no ,FileSystem * _fs );
+  void CommitUpdatedInodes();
   
 };
 
@@ -84,10 +84,10 @@ class FileSystem
 private:
   /* -- DEFINE YOUR FILE SYSTEM DATA STRUCTURES HERE. */
 
-  SimpleDisk *disk;
+  
   unsigned int size;
 
-  static constexpr unsigned int MAX_INODES = SimpleDisk::BLOCK_SIZE / sizeof(Inode);
+  
   ///static constexpr unsigned int MAX_FREE_BLOCKS = SimpleDisk::BLOCK_SIZE / sizeof(Inode);
   /* Just as an example, you can store MAX_INODES in a single INODES block */
 
@@ -97,8 +97,7 @@ private:
   unsigned int free_block_count;
   unsigned int inode_counter;
   unsigned char *free_blocks;
-  Inode *inodes; // the inode list
-
+  
 
   //isize, fsize, nfree,nfree array, ninode, inode array, timestamp
 
@@ -115,6 +114,10 @@ private:
      blocks. These functions also come useful to class Inode and File. */
 
 public:
+  SimpleDisk *disk;
+  Inode *inodes; // the inode list
+
+  static constexpr unsigned int MAX_INODES = SimpleDisk::BLOCK_SIZE / sizeof(Inode);
   FileSystem();
   /* Just initializes local data structures. Does not connect to disk yet. */
 

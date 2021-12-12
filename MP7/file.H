@@ -62,7 +62,7 @@ public:
   int file_id;
   unsigned int block_no;
   unsigned int inode_index;
-
+  unsigned int file_size;
   unsigned int current_position;
   
 

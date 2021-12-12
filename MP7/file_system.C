@@ -31,11 +31,29 @@
 /*--------------------------------------------------------------------------*/
 
 
-Inode::Inode(long file_id, unsigned int file_block_no)
+Inode::Inode()
 {
   fs = NULL;
   inode_free = true;
   file_size= 0;
+}
+
+void Inode::InitialiseInode(long _file_id, unsigned int _file_block_no,FileSystem * _fs ){
+  assert(!inode_free);
+
+
+  inode_free = false;
+  fs = _fs;
+  block_no = _file_block_no;
+  fs->free_blocks[block_no] = USED_BLOCK_IDENTIFIER;
+
+}
+
+void Inode::CommitUpdatedInodes(){
+  Inode * tmp_inodes = fs->inodes;
+  unsigned char * tmp = (unsigned char *)tmp_inodes;
+  fs->disk->write(INODE_STORING_BLOCK_NO,tmp);
+  return;
 }
 
 /* You may need to add a few functions, for example to help read and store 
@@ -85,20 +103,16 @@ bool FileSystem::Mount(SimpleDisk * _disk) {
     _disk->read(FREE_BLOCK_BITMAP_BLOCK_NO,free_blocks);
     _disk->read(INODE_STORING_BLOCK_NO,tmp);
     inodes = Inode * (tmp);
+    inode_counter= 0
 
     for (int i ;i++;i<MAX_INODES){
-      if (inodes[i].inode_free){
-        inode_counter=i;
-        break;
+      if (!inodes[i].inode_free){
+        inode_counter++;
+        //break;
       }
     }
 
-    if (i>0){
-      free_block_count = SimpleDisk::BLOCK_SIZE/sizeof(unsigned char) - inodes[i-1].block_no-1;
-    }else{
-      free_block_count = SimpleDisk::BLOCK_SIZE/sizeof(unsigned char);
-    }
-
+    free_block_count = SimpleDisk::BLOCK_SIZE/sizeof(unsigned char) ;
     // free block count??
     return true;
 
@@ -130,7 +144,7 @@ Inode * FileSystem::LookupFile(int _file_id) {
     Console::puts("looking up file with id = "); Console::puti(_file_id); Console::puts("\n");
     /* Here you go through the inode list to find the file. */
     for (int i = 0;i++;i<inode_counter){
-      if (inode[i].id==file_id){
+      if (inode[i].id==_file_id){
         return &inode[i];
       }
 
@@ -140,6 +154,38 @@ Inode * FileSystem::LookupFile(int _file_id) {
 
 bool FileSystem::CreateFile(int _file_id) {
     Console::puts("creating file with id:"); Console::puti(_file_id); Console::puts("\n");
+    for (int i = 0;i++;i<inode_counter){
+      if (inode[i].id==_file_id){
+        assert(false);
+      }
+
+    }
+
+    int free_inode_index = -1;
+    for (int i = 0;i<MAX_INODES;i++){
+      if (!inodes[i].inode_free){
+        free_inode_index = i;
+        break;
+      }
+    }
+
+    int free_block_index = -1;
+
+    for (int i = 0;i<free_block_count;i++){
+      if (free_blocks[i]=FREE_BLOCK_IDENTIFIER){
+        free_block_index = i;
+        break;
+      }
+    }
+
+    
+    assert((free_inode_index!=-1) && (free_block_index!=-1));
+    inodes[free_inode_index]->InitialiseInode(_file_id,  free_block_index, fs );
+    inode_counter++;
+    free_block_count--;
+
+    return true;
+
     /* Here you check if the file exists already. If so, throw an error.
        Then get yourself a free inode and initialize all the data needed for the
        new file. After this function there will be a new file on disk. */
@@ -151,4 +197,26 @@ bool FileSystem::DeleteFile(int _file_id) {
     /* First, check if the file exists. If not, throw an error. 
        Then free all blocks that belong to the file and delete/invalidate 
        (depending on your implementation of the inode list) the inode. */
+
+    bool file_found = false;
+
+
+    for (int i = 0;i<MAX_INODES;i++){
+      if (inodes[i].id==_file_id){
+        free_inode_index = i;
+        file_found = true
+        break;
+      }
+    }
+
+    assert(file_found);
+
+    int block_no = inodes[i].block_no;
+    free_blocks[block_no] = FREE_BLOCK_IDENTIFIER;
+    inodes[i].inode_free = true;
+    inodes[i].file_size = 0;
+
+    return true;
+
+
 }

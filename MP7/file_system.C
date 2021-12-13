@@ -36,12 +36,13 @@ Inode::Inode()
   fs = NULL;
   inode_free = true;
   file_size= 0;
+  id = -1;
 }
 
 void Inode::InitialiseInode(long _file_id, unsigned int _file_block_no,FileSystem * _fs ){
   assert(!inode_free);
 
-
+  id = _file_id;
   inode_free = false;
   fs = _fs;
   block_no = _file_block_no;
@@ -129,7 +130,7 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) { // static!
     array_for_free_blocks[0] = USED_BLOCK_IDENTIFIER;
     array_for_free_blocks[1] = USED_BLOCK_IDENTIFIER;
     
-    for (int i=2;i++;i<count_of_free_blocks){
+    for (int i=2;i<count_of_free_blocks;i++){
       array_for_free_blocks[i]=FREE_BLOCK_IDENTIFIER;
     }
 
@@ -156,39 +157,44 @@ Inode * FileSystem::LookupFile(int _file_id) {
 
 bool FileSystem::CreateFile(int _file_id) {
     Console::puts("creating file with id:"); Console::puti(_file_id); Console::puts("\n");
+    
     for (int i = 0;i++;i<inode_counter){
       if (inodes[i].id==_file_id){
         assert(false);
       }
 
     }
-
+    
     int free_inode_index = -1;
     for (int i = 0;i<MAX_INODES;i++){
-      if (!inodes[i].inode_free){
+      if (inodes[i].inode_free){
         free_inode_index = i;
         break;
       }
     }
-
+    
     int free_block_index = -1;
 
     for (int i = 0;i<free_block_count;i++){
-      if (free_blocks[i]=FREE_BLOCK_IDENTIFIER){
+      if (free_blocks[i]==FREE_BLOCK_IDENTIFIER){
         free_block_index = i;
         break;
       }
     }
-
+	  
+	  
+    //Console::puti(free_block_index); Console::puts(" block\n");
+    //Console::puti(free_inode_index); Console::puts(" inode\n");
     
     assert((free_inode_index!=-1) && (free_block_index!=-1));
-    Inode inode_found = inodes[free_inode_index];
-    inode_found.inode_free = false;
-    inode_found.fs = this;
-    inode_found.block_no = free_block_index;
+    //Inode inode_found = inodes[free_inode_index];
+    inodes[free_inode_index].inode_free = false;
+    inodes[free_inode_index].fs = this;
+    inodes[free_inode_index].block_no = free_block_index;
+    inodes[free_inode_index].id = _file_id;
     free_blocks[free_block_index] = USED_BLOCK_IDENTIFIER;
     
-    
+    //Console::puti(inodes[0].id); Console::puts("\n");
     //inode_found->InitialiseInode(_file_id,  free_block_index, this );
     inode_counter++;
     free_block_count--;

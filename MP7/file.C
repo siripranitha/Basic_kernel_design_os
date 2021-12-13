@@ -32,7 +32,9 @@ File::File(FileSystem *_fs, int _id) {
     fs = _fs;
     file_id = _id;
     bool block_found = false;
-    for (int i=0;i<i++;i<fs->MAX_INODES){
+    //Console::puti(fs->inodes[0].id); Console::puts("\n");
+    for (int i=0;i<fs->MAX_INODES;i<i++){
+        
         if (fs->inodes[i].id==_id){
             inode_index = i;
             block_no = fs->inodes[i].block_no;

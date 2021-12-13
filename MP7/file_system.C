@@ -39,23 +39,7 @@ Inode::Inode()
   id = -1;
 }
 
-void Inode::InitialiseInode(long _file_id, unsigned int _file_block_no,FileSystem * _fs ){
-  assert(!inode_free);
 
-  id = _file_id;
-  inode_free = false;
-  fs = _fs;
-  block_no = _file_block_no;
-  fs->free_blocks[block_no] = USED_BLOCK_IDENTIFIER;
-
-}
-
-void Inode::CommitUpdatedInodes(){
-  Inode * tmp_inodes = fs->inodes;
-  unsigned char * tmp = (unsigned char *)tmp_inodes;
-  fs->disk->write(INODE_STORING_BLOCK_NO,tmp);
-  return;
-}
 
 /* You may need to add a few functions, for example to help read and store 
    inodes from and to disk. */
@@ -196,9 +180,7 @@ bool FileSystem::CreateFile(int _file_id) {
     
     //Console::puti(inodes[0].id); Console::puts("\n");
     //inode_found->InitialiseInode(_file_id,  free_block_index, this );
-    inode_counter++;
-    free_block_count--;
-
+    
     return true;
 
     /* Here you check if the file exists already. If so, throw an error.

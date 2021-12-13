@@ -61,8 +61,6 @@ private:
 
 public:
   Inode();
-  void InitialiseInode(long _file_id, unsigned int _file_block_no ,FileSystem * _fs );
-  void CommitUpdatedInodes();
   
 };
 
